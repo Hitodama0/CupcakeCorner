@@ -11,6 +11,7 @@ struct CheckoutView: View {
     @ObservedObject var order: Order
     @State private var confirmationMessage = ""
     @State private var showingConfirmation = false
+    @State private var showingInternetAlert = false
     var body: some View {
         ScrollView {
             VStack {
@@ -30,13 +31,19 @@ struct CheckoutView: View {
                     Task {
                         await placeOrder()
                     }
-                }            }
+                }
+            }
         }
         .navigationTitle("Check out")
         .alert("Thank you!", isPresented: $showingConfirmation) {
             Button("OK") { }
         } message: {
             Text(confirmationMessage)
+        }
+        .alert("PROBLEM!", isPresented: $showingInternetAlert) {
+            Button("OK") { }
+        } message: {
+            Text("You are not connected to the network")
         }
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -56,9 +63,10 @@ struct CheckoutView: View {
             let decodedOrder = try JSONDecoder().decode(Order.self, from: data)
             confirmationMessage = "Your order for \(decodedOrder.quantity)x \(Order.types[decodedOrder.type].lowercased()) cupcakes is on its way!"
             showingConfirmation = true
-
+            
         } catch {
             print("Checkout failed.")
+            showingInternetAlert = true
         }
     }
 }
